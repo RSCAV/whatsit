@@ -22,13 +22,29 @@ TOOLS = [
                      "properties": {"path": {"type": "string"},
                                     "note": {"type": "string"}},
                      "required": ["path", "note"]}},
+    {"name": "index_folders",
+     "description": "Build or refresh the catalog from folders on this Mac. Call this "
+                    "if find_file reports the catalog is empty. Defaults to the "
+                    "Desktop and Downloads folders. Takes a few minutes and is free.",
+     "inputSchema": {"type": "object",
+                     "properties": {"folders": {"type": "array",
+                                                "items": {"type": "string"}}}}},
     {"name": "catalog_stats",
      "description": "How many things are catalogued and how many carry use-notes.",
      "inputSchema": {"type": "object", "properties": {}}},
 ]
 
+def _is_empty():
+    return connect().execute("SELECT COUNT(*) FROM things").fetchone()[0] == 0
+
+
 def _call(name, args):
     if name == "find_file":
+        if _is_empty():
+            return ("The catalog is empty, so nothing has been read yet. Ask the user "
+                    "whether to index now, and if they agree call index_folders. It "
+                    "takes a few minutes, runs entirely on this Mac and costs nothing. "
+                    "macOS may ask them to grant Full Disk Access to their terminal.")
         hits = search(args.get("question", ""), limit=int(args.get("limit", 5)))
         if not hits:
             return "No match."
@@ -46,6 +62,17 @@ def _call(name, args):
     if name == "record_use":
         ok = record_use(connect(), args.get("path", ""), args.get("note", ""))
         return "Recorded." if ok else "That path is not in the catalog."
+    if name == "index_folders":
+        import os
+        from .index import build
+        folders = args.get("folders") or ["~/Desktop", "~/Downloads"]
+        lines = []
+        things, kept = build([os.path.expanduser(f) for f in folders],
+                             say=lines.append)
+        noun = "thing" if things == 1 else "things"
+        return (f"{things:,} {noun} catalogued from {', '.join(folders)}."
+                + (f" {kept} use-notes kept." if kept else "")
+                + "\n" + "\n".join(lines))
     if name == "catalog_stats":
         db = connect()
         things = db.execute("SELECT COUNT(*) FROM things").fetchone()[0]
