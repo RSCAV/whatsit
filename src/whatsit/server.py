@@ -64,7 +64,13 @@ def _call(name, args):
         return "Recorded." if ok else "That path is not in the catalog."
     if name == "index_folders":
         import os
+        from . import ocr as _ocr
         from .index import build
+        if not _ocr.available():
+            return ("The text reader is missing, so indexing would catalogue names "
+                    "without reading anything. This happens when whatsit is installed "
+                    "straight from the git repo. Tell the user to install the published "
+                    "package instead, or to clone the repo and run ./build_helper.sh once.")
         folders = args.get("folders") or ["~/Desktop", "~/Downloads"]
         lines = []
         things, kept = build([os.path.expanduser(f) for f in folders],

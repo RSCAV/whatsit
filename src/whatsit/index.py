@@ -69,6 +69,14 @@ def build(roots, langs="es-ES,en-US", say=print):
     reps = [t["paths"][0] for t in things.values()]
     say(f"  {len(things):,} things, {len(files) - len(things):,} duplicate copies folded in")
 
+    if not ocr.available():
+        say("\n  The text reader is missing, so nothing will be read.")
+        say("  This happens when whatsit is installed straight from the git repo,")
+        say("  which does not carry the compiled helper. Either install the")
+        say("  published package, or build the helper once:")
+        say("      git clone https://github.com/RSCAV/whatsit && cd whatsit && ./build_helper.sh\n")
+        raise SystemExit(3)
+
     say("reading what is printed on them…")
     try:
         read = ocr.run(reps, langs=langs)
