@@ -28,3 +28,6 @@ whatsit = "whatsit.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/whatsit"]
 artifacts = ["src/whatsit/bin/whatsit-ocr"]
+
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = "hatch_build.py"

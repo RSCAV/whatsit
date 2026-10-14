@@ -71,7 +71,8 @@ def main(argv=None):
     if args.cmd == "index":
         things, kept = index.build([os.path.expanduser(r) for r in args.roots],
                                    langs=args.langs)
-        print(f"\n{things:,} things catalogued."
+        noun = "thing" if things == 1 else "things"
+        print(f"\n{things:,} {noun} catalogued."
               + (f" {kept} use-notes kept." if kept else ""))
         return 0
     if args.cmd == "used":

@@ -77,7 +77,8 @@ def build(roots, langs="es-ES,en-US", say=print):
         say("  Give your terminal Full Disk Access in System Settings →")
         say("  Privacy & Security → Full Disk Access, then run this again.\n")
         raise SystemExit(2)
-    say(f"  {sum(1 for v in read.values() if (v.get("t") or "").strip()):,} had readable text")
+    with_text = sum(1 for v in read.values() if (v.get("t") or "").strip())
+    say(f"  {with_text:,} had readable text")
 
     say("harvesting Apple's own labels…")
     labelled = scenes.for_paths(reps, scenes.vocabulary())
