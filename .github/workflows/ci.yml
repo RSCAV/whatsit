@@ -1,0 +1,11 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: ./build_helper.sh
+      - run: uv run --with . python -c "import whatsit, whatsit.server, whatsit.cli; print(whatsit.__version__)"
+      - run: uv run --with . whatsit stats

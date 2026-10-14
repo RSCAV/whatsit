@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "whatsit"
+version = "0.1.0"
+description = "Find the file you forgot the name of."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "Rodrigo Casanova-Aleman", email = "rscav06@gmail.com" }]
+keywords = ["mcp", "search", "macos", "ocr", "files", "spotlight"]
+classifiers = [
+  "Environment :: Console",
+  "Operating System :: MacOS :: MacOS X",
+  "Programming Language :: Python :: 3",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/RSCAV/whatsit"
+Issues = "https://github.com/RSCAV/whatsit/issues"
+
+[project.scripts]
+whatsit = "whatsit.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/whatsit"]
+artifacts = ["src/whatsit/bin/whatsit-ocr"]
