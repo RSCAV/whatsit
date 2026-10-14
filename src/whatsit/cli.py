@@ -34,9 +34,20 @@ def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     # `whatsit the qr I printed` is the primary form, so anything that is not a
     # known subcommand or flag is treated as the question itself.
+    # `-n` is pulled out wherever it sits so the bare-question form keeps working
+    # with a leading flag.
+    limit = 8
+    i = 0
+    while i < len(argv):
+        if argv[i] in ("-n", "--limit") and i + 1 < len(argv) and argv[i + 1].isdigit():
+            limit = int(argv[i + 1])
+            del argv[i:i + 2]
+        else:
+            i += 1
+
     if argv and argv[0] not in COMMANDS and not argv[0].startswith("-"):
         question = " ".join(argv)
-        return show(search(question), question)
+        return show(search(question, limit=limit), question)
 
     p = argparse.ArgumentParser(
         prog="whatsit", description="Find the file you forgot the name of.")
@@ -53,6 +64,7 @@ def main(argv=None):
     sub.add_parser("mcp", help="run as an MCP server over stdio")
     sub.add_parser("stats", help="what is in the catalog")
     p.add_argument("question", nargs="*", help="ask in plain words")
+    p.add_argument("-n", "--limit", type=int, default=8, help="how many results")
 
     args = p.parse_args(argv)
 
@@ -86,6 +98,7 @@ def main(argv=None):
         return 0
 
     if args.question:
-        return show(search(" ".join(args.question)), " ".join(args.question))
+        q = " ".join(args.question)
+        return show(search(q, limit=limit), q)
     p.print_help()
     return 0
