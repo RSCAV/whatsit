@@ -1,0 +1,26 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: macos-14
+    strategy:
+      matrix:
+        python: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: ./build_helper.sh
+      - name: build and install the wheel the way a user would
+        run: |
+          uv build --wheel
+          uv venv --python ${{ matrix.python }} .probe
+          uv pip install --python .probe/bin/python dist/*.whl
+      - name: it imports and runs
+        run: |
+          .probe/bin/whatsit stats
+          .probe/bin/whatsit index README.md
+          .probe/bin/python -c "import whatsit.server, whatsit.index, whatsit.search"
+      - name: mcp handshake
+        run: |
+          printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
+            | .probe/bin/whatsit mcp | grep -q find_file
