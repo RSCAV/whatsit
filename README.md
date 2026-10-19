@@ -14,21 +14,51 @@ Everything happens on your Mac. Nothing is uploaded, nothing is moved, nothing i
 renamed, and there is no account. I built it because 7,686 of my own files were
 called things like `Untitled design (3).png` and I was tired of not finding them.
 
-## Install
+## Start
+
+You already use Claude, Cursor or Codex. Paste one line into your terminal and
+that is the whole setup:
 
 ```bash
-uvx whatsit
+claude mcp add --transport stdio whatsit --scope user -- uvx whatsit mcp
 ```
 
-Keep it around with `uv tool install whatsit`, or `pipx install whatsit`.
-macOS 13 or later, Apple Silicon.
+Then just ask, in the AI you already use:
 
-## Quick start
+> *find the QR I printed for the stand*
+
+The first time you ask, it will offer to read your Desktop and Downloads. Say yes,
+wait a few minutes, and you never think about it again. Nothing is uploaded, nothing
+is moved, nothing is renamed.
+
+<details>
+<summary>Cursor, Codex, ChatGPT desktop, or no AI at all</summary>
+
+Cursor, in `~/.cursor/mcp.json`:
+
+```json
+{ "mcpServers": { "whatsit": { "type": "stdio", "command": "uvx", "args": ["whatsit", "mcp"] } } }
+```
+
+Codex and the ChatGPT desktop app share `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.whatsit]
+command = "uvx"
+args = ["whatsit", "mcp"]
+```
+
+Or use it on its own, with no AI involved:
 
 ```bash
-whatsit index ~/Desktop ~/Downloads     # once, a few minutes, free
-whatsit "the invoice from the printer"  # ask in plain words
+uvx whatsit index ~/Desktop ~/Downloads
+uvx whatsit "the invoice from the printer"
 ```
+
+</details>
+
+Needs [uv](https://docs.astral.sh/uv/getting-started/installation/) and macOS 13 or
+later on Apple Silicon.
 
 ```
 $ whatsit "the QR I printed for the stand"
@@ -54,31 +84,11 @@ That last line is the point. It was not written by hand.
 - The words printed inside an image are searchable, offline, using Apple's own text recognition.
 - An agent records what a file was used for while doing the work, and that is what makes it findable later.
 
-## Use it from Claude, Cursor, Codex
+## The tool your agent actually uses
 
-Claude Code:
-
-```bash
-claude mcp add --transport stdio whatsit --scope user -- uvx whatsit mcp
-```
-
-Cursor, in `~/.cursor/mcp.json`:
-
-```json
-{ "mcpServers": { "whatsit": { "type": "stdio", "command": "uvx", "args": ["whatsit", "mcp"] } } }
-```
-
-Codex and the ChatGPT desktop app share `~/.codex/config.toml`:
-
-```toml
-[mcp_servers.whatsit]
-command = "uvx"
-args = ["whatsit", "mcp"]
-```
-
-Three tools come across: `find_file`, `record_use` and `catalog_stats`. The one that
-matters is `record_use` — point your agent at it and tell it to call it whenever it
-makes, prints, publishes or sends a file. The catalog then writes itself.
+Four tools come across: `find_file`, `record_use`, `index_folders` and `catalog_stats`.
+The one that matters is `record_use`. Tell your agent to call it whenever it makes,
+prints, publishes or sends a file, and the catalog writes itself while you work.
 
 ## How it works
 
