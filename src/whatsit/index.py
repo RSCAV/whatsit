@@ -5,7 +5,11 @@ from pathlib import Path
 from . import ocr, scenes
 from .store import connect
 
-IMAGE = {".png", ".jpg", ".jpeg", ".heic", ".webp", ".gif", ".tiff", ".bmp"}
+# Everything gets an entry so it can be found; READABLE is what we can also read.
+READABLE = {".png", ".jpg", ".jpeg", ".heic", ".webp", ".gif", ".tiff", ".bmp", ".pdf"}
+IMAGE = READABLE | {".mp4", ".mov", ".m4v", ".svg", ".zip", ".sql", ".html", ".csv",
+                    ".xlsx", ".docx", ".txt", ".md", ".key", ".pptx", ".ai", ".psd",
+                    ".fig", ".sketch", ".json", ".mp3", ".wav", ".aif", ".ttf", ".otf"}
 SKIP = ("node_modules", "/.git/", "/Library/", "/.Trash", "/.cache",
         "DerivedData", "/.venv", "__pycache__", "/.whatsit")
 HOME = str(Path.home())
@@ -38,15 +42,23 @@ def _digest(path):
     except OSError:
         return None, 0
 
+GENERIC = {"desktop", "downloads", "documents", "pictures", "movies", "music",
+           "archivo", "archive", "files", "sueltos", "brain"}
+
+
 def _project(path):
-    """The first meaningful folder under home, which is how people already group work."""
+    """The first folder under home that actually names something.
+
+    Container folders say nothing about what a file is for, so they are skipped
+    and the next level down answers instead.
+    """
     try:
         parts = Path(path).relative_to(HOME).parts[:-1]
     except ValueError:
         parts = Path(path).parts[1:-1]
     for part in parts:
         low = part.lower()
-        if low in ("desktop", "downloads", "documents", "pictures", "movies", "music"):
+        if low in GENERIC or low.startswith("."):
             continue
         return re.sub(r"[^a-z0-9]+", "-", low).strip("-")[:40]
     return ""
@@ -54,7 +66,7 @@ def _project(path):
 def build(roots, langs="es-ES,en-US", say=print):
     say("scanning…")
     files = list(walk(roots))
-    say(f"  {len(files):,} images")
+    say(f"  {len(files):,} files")
     if not files:
         return 0, 0
 
@@ -78,8 +90,9 @@ def build(roots, langs="es-ES,en-US", say=print):
         raise SystemExit(3)
 
     say("reading what is printed on them…")
+    readable = [p for p in reps if Path(p).suffix.lower() in READABLE]
     try:
-        read = ocr.run(reps, langs=langs)
+        read = ocr.run(readable, langs=langs)
     except PermissionError:
         say("\n  macOS blocked reading those files.")
         say("  Give your terminal Full Disk Access in System Settings →")
